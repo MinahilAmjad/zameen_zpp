@@ -31,7 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text(' Welcome To Zameen App'),
         centerTitle: true,
       ),
-      drawer: drawerComponent(context),
+      drawer: drawerComponent(context), // Drawer component
       body: Container(
         width: size.width,
         height: size.height,
@@ -42,12 +42,12 @@ class _HomeScreenState extends State<HomeScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              CarouselSliderWidget(
+              CarouselSliderWidget( // Carousel slider widget
                 imagePaths:
                     carouselSliderModel.map((value) => value.imageUrl).toList(),
                 names: carouselSliderModel.map((value) => value.title).toList(),
               ),
-              _displayAssetsInCategories(),
+              _displayAssetsInCategories(), // Displaying assets in categories
             ],
           ),
         ),
@@ -98,6 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // Display assets in different categories
   Widget _displayAssetsInCategories() {
     return StreamBuilder(
       stream: FirebaseFirestore.instance.collection('all_products').snapshots(),
@@ -141,12 +142,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // Widget to display a 'See All' button for each category
   Widget _displaySeeAllButton(
       List assets,
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> shopAssets,
-      factoriesAssets,
-      buildingsAssets,
-      hotelsAssets) {
+       List<QueryDocumentSnapshot<Map<String, dynamic>>> shopAssets,
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> factoriesAssets,
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> buildingsAssets,
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> hotelsAssets,) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: TextButton(
@@ -169,6 +171,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // Widget to display assets of a specific category
   Widget _displayCategoryAssets(String categoryName, List assets) {
     return Column(
       children: [
@@ -245,6 +248,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+// Widget for the drawer component
 Widget drawerComponent(BuildContext context) {
   Size size = MediaQuery.of(context).size;
   return Drawer(
@@ -313,6 +317,7 @@ Widget drawerComponent(BuildContext context) {
   );
 }
 
+// Widget for each ListTile in the drawer
 Widget _listTileComponent(
   BuildContext context,
   void Function()? onTap,
