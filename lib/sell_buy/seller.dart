@@ -1,3 +1,27 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:uuid/uuid.dart';
+import 'package:zameen_zpp/models/seller_model/seller_profile_model.dart';
+import 'package:zameen_zpp/screen/crud_screens/delete_assets.dart';
+import 'package:zameen_zpp/screen/crud_screens/update_assets.dart';
+import 'package:zameen_zpp/screen/crud_screens/view_assets.dart';
+
+class SellScreen extends StatefulWidget {
+  const SellScreen({Key? key}) : super(key: key);
+
+  @override
+  _SellScreenState createState() => _SellScreenState();
+}
+
 class _SellScreenState extends State<SellScreen> {
   final _formKey = GlobalKey<FormState>();
   TextEditingController nameController = TextEditingController();
