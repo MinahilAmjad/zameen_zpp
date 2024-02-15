@@ -24,7 +24,7 @@ class UserProfileScreen extends StatelessWidget {
           _listTileComponent(context, () async {
             Navigator.pushAndRemoveUntil(context,
                 MaterialPageRoute(builder: (_) {
-              return RateApp();
+              return RateAppScreen();
             }), (route) => false);
           }, Icons.privacy_tip, 'Rate App'),
           Divider(),

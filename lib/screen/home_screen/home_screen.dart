@@ -31,7 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text(' Welcome To Zameen App'),
         centerTitle: true,
       ),
-      drawer: drawerComponent(context),
+      drawer: drawerComponent(context), // Drawer component
       body: Container(
         width: size.width,
         height: size.height,
@@ -43,11 +43,12 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             children: [
               CarouselSliderWidget(
+                // Carousel slider widget
                 imagePaths:
                     carouselSliderModel.map((value) => value.imageUrl).toList(),
                 names: carouselSliderModel.map((value) => value.title).toList(),
               ),
-              _displayAssetsInCategories(),
+              _displayAssetsInCategories(), // Displaying assets in categories
             ],
           ),
         ),
@@ -98,6 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // Display assets in different categories
   Widget _displayAssetsInCategories() {
     return StreamBuilder(
       stream: FirebaseFirestore.instance.collection('all_products').snapshots(),
@@ -141,12 +143,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // Widget to display a 'See All' button for each category
   Widget _displaySeeAllButton(
-      List assets,
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> shopAssets,
-      factoriesAssets,
-      buildingsAssets,
-      hotelsAssets) {
+    List assets,
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> shopAssets,
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> factoriesAssets,
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> buildingsAssets,
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> hotelsAssets,
+  ) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: TextButton(
@@ -169,6 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // Widget to display assets of a specific category
   Widget _displayCategoryAssets(String categoryName, List assets) {
     return Column(
       children: [
@@ -245,6 +250,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+// Widget for the drawer component
 Widget drawerComponent(BuildContext context) {
   Size size = MediaQuery.of(context).size;
   return Drawer(
@@ -278,7 +284,7 @@ Widget drawerComponent(BuildContext context) {
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (_) {
-                    return RateApp();
+                    return RateAppScreen();
                   }),
                   (route) => false,
                 );
@@ -313,6 +319,7 @@ Widget drawerComponent(BuildContext context) {
   );
 }
 
+// Widget for each ListTile in the drawer
 Widget _listTileComponent(
   BuildContext context,
   void Function()? onTap,
@@ -773,4 +780,343 @@ Widget _listTileComponent(
 //     ],
 //   );
 // }
+// }
+
+
+
+
+
+
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:flutter/material.dart';
+// import 'package:zameen_zpp/models/carousel_slider_model/carousel_slider_model.dart';
+// import 'package:zameen_zpp/models/seller_model/seller_profile_model.dart';
+// import 'package:zameen_zpp/models/ui_models/carousel_slider_model.dart';
+// import 'package:zameen_zpp/privacy_policy/privacy_policy.dart';
+// import 'package:zameen_zpp/rate_app/rate_app.dart';
+// import 'package:zameen_zpp/screen/credentials/login_screen.dart';
+// import 'package:zameen_zpp/screen/see_all_assets.dart';
+// import 'package:zameen_zpp/sell_buy/product_detail_screen.dart';
+
+// class HomeScreen extends StatefulWidget {
+//   const HomeScreen({Key? key}) : super(key: key);
+
+//   @override
+//   State<HomeScreen> createState() => _HomeScreenState();
+// }
+
+// class _HomeScreenState extends State<HomeScreen> {
+//   String? searchQuery = '';
+//   int? myIndex = 0;
+
+//   @override
+//   Widget build(BuildContext context) {
+//     Size size = MediaQuery.of(context).size;
+//     return Scaffold(
+//       backgroundColor: Color(0xFFC8291D),
+//       appBar: AppBar(
+//         backgroundColor: Color(0xFFC8291D),
+//         title: const Text(' Welcome To Zameen App'),
+//         centerTitle: true,
+//       ),
+//       drawer: drawerComponent(context),
+//       body: Container(
+//         width: size.width,
+//         height: size.height,
+//         decoration: BoxDecoration(
+//           color: Color.fromARGB(255, 243, 239, 239),
+//           borderRadius: BorderRadius.circular(40),
+//         ),
+//         child: SingleChildScrollView(
+//           child: Column(
+//             children: [
+//               CarouselSliderWidget(
+//                 imagePaths:
+//                     carouselSliderModel.map((value) => value.imageUrl).toList(),
+//                 names: carouselSliderModel.map((value) => value.title).toList(),
+//               ),
+//               _displayAssetsInCategories(),
+//             ],
+//           ),
+//         ),
+//       ),
+//       bottomNavigationBar: BottomNavigationBar(
+//         type: BottomNavigationBarType.fixed,
+//         selectedItemColor: Colors.black,
+//         onTap: (index) {
+//           setState(() {
+//             myIndex = index;
+//           });
+
+//           switch (index) {
+//             case 0:
+//               Navigator.pushReplacementNamed(context, '/home');
+//               break;
+//             case 1:
+//               Navigator.pushReplacementNamed(context, '/search');
+//               break;
+//             case 2:
+//               Navigator.pushReplacementNamed(context, '/sell');
+//               break;
+//             case 3:
+//               Navigator.pushReplacementNamed(context, '/user_profile');
+//               break;
+//           }
+//         },
+//         currentIndex: myIndex!,
+//         items: [
+//           const BottomNavigationBarItem(
+//             icon: Icon(Icons.home),
+//             label: 'Home',
+//           ),
+//           const BottomNavigationBarItem(
+//             icon: Icon(Icons.search),
+//             label: 'Search',
+//           ),
+//           const BottomNavigationBarItem(
+//             icon: Icon(Icons.sell),
+//             label: 'Sell Assets',
+//           ),
+//           const BottomNavigationBarItem(
+//             icon: Icon(Icons.person),
+//             label: 'User',
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+
+//   Widget _displayAssetsInCategories() {
+//     return StreamBuilder(
+//       stream: FirebaseFirestore.instance.collection('all_products').snapshots(),
+//       builder: (context, snapshot) {
+//         if (snapshot.connectionState == ConnectionState.waiting) {
+//           return const Center(child: CircularProgressIndicator());
+//         } else if (snapshot.hasError) {
+//           return Center(child: Text('Error: ${snapshot.error}'));
+//         } else if (!snapshot.hasData || snapshot.data == null) {
+//           return const Center(child: Text('No assets found.'));
+//         } else {
+//           var assets = snapshot.data!.docs;
+//           var landAssets =
+//               assets.where((asset) => asset['productType'] == 'LAND').toList();
+//           Divider();
+//           var houseAssets =
+//               assets.where((asset) => asset['productType'] == 'HOUSE').toList();
+//           Divider();
+//           var shopAssets =
+//               assets.where((asset) => asset['productType'] == 'SHOPS').toList();
+//           var factoriesAssets = assets
+//               .where((asset) => asset['productType'] == 'FACTORIES')
+//               .toList();
+//           var buildingsAssets = assets
+//               .where((asset) => asset['productType'] == 'BUILDINGS')
+//               .toList();
+//           var hotelsAssets = assets
+//               .where((asset) => asset['productType'] == 'HOTELS')
+//               .toList();
+
+//           return Column(
+//             children: [
+//               _displayCategoryAssets("LAND", landAssets),
+//               _displayCategoryAssets("HOUSE", houseAssets),
+//               _displaySeeAllButton(assets, shopAssets, factoriesAssets,
+//                   buildingsAssets, hotelsAssets),
+//             ],
+//           );
+//         }
+//       },
+//     );
+//   }
+
+//   Widget _displaySeeAllButton(
+//     List assets,
+//     List<QueryDocumentSnapshot<Map<String, dynamic>>> shopAssets,
+//     List<QueryDocumentSnapshot<Map<String, dynamic>>> factoriesAssets,
+//     List<QueryDocumentSnapshot<Map<String, dynamic>>> buildingsAssets,
+//     List<QueryDocumentSnapshot<Map<String, dynamic>>> hotelsAssets,
+//   ) {
+//     return Padding(
+//       padding: const EdgeInsets.all(8.0),
+//       child: TextButton(
+//         onPressed: () {
+//           Navigator.push(
+//             context,
+//             MaterialPageRoute(
+//               builder: (context) =>
+//                   SeeAllAssetsScreen(assets: assets, shopAssets: shopAssets),
+//             ),
+//           );
+//         },
+//         child: Text(
+//           "See All",
+//           style: TextStyle(
+//             color: Color.fromRGBO(7, 7, 7, 1),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+
+//   Widget _displayCategoryAssets(String categoryName, List assets) {
+//     return Column(
+//       children: [
+//         ListTile(
+//           title: Text(
+//             categoryName,
+//             style: TextStyle(fontWeight: FontWeight.bold),
+//           ),
+//         ),
+//         ListView.builder(
+//           shrinkWrap: true,
+//           physics: NeverScrollableScrollPhysics(),
+//           itemCount: assets.length,
+//           itemBuilder: (context, index) {
+//             var asset = assets[index];
+//             var productType = asset['productType'] ?? 'Unknown';
+
+//             return Container(
+//               height: 150,
+//               width: double.infinity,
+//               color: Color.fromARGB(255, 240, 228, 228),
+//               child: Column(
+//                 children: [
+//                   Expanded(
+//                     child: ListTile(
+//                       title: Text(asset['productName'] ?? ''),
+//                       subtitle: Column(
+//                         crossAxisAlignment: CrossAxisAlignment.start,
+//                         children: [
+//                           Text(asset['description'] ?? ''),
+//                           Text(
+//                             'Price: ${asset['price'] ?? 'N/A'}',
+//                             style: TextStyle(fontWeight: FontWeight.bold),
+//                           ),
+//                         ],
+//                       ),
+//                       trailing: Text('Type: $productType'),
+//                     ),
+//                   ),
+//                   Spacer(),
+//                   MaterialButton(
+//                     color: Color(0xFFC8291D),
+//                     minWidth: 50,
+//                     onPressed: () {
+//                       Navigator.push(
+//                         context,
+//                         MaterialPageRoute(
+//                           builder: (context) => ProductDetailsScreen(
+//                             product: SellerProfileModel(
+//                               name: asset['name'] ?? '',
+//                               productName: asset['productName'] ?? '',
+//                               description: asset['description'] ?? '',
+//                               price: asset['price'] ?? 0.0,
+//                               phoneNumber: asset['phoneNumber'] ?? 0,
+//                               imageUrls:
+//                                   asset['imageUrls']?.cast<String>() ?? [],
+//                             ),
+//                           ),
+//                         ),
+//                       );
+//                     },
+//                     child: Text(
+//                       "See Details",
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             );
+//           },
+//         ),
+//         SizedBox(height: 10),
+//       ],
+//     );
+//   }
+// }
+
+// Widget drawerComponent(BuildContext context) {
+//   Size size = MediaQuery.of(context).size;
+//   return Drawer(
+//     backgroundColor: const Color(0xFFC8291D),
+//     child: ListView(
+//       padding: EdgeInsets.zero,
+//       children: <Widget>[
+//         const SizedBox(
+//           height: 200,
+//           child: Center(
+//             child: Text(
+//               'Seller Screen ',
+//               style: TextStyle(
+//                 color: Colors.white,
+//                 fontSize: 24,
+//                 fontWeight: FontWeight.bold,
+//               ),
+//             ),
+//           ),
+//         ),
+//         Container(
+//           width: size.width,
+//           height: size.height,
+//           decoration: BoxDecoration(
+//             color: const Color.fromARGB(255, 221, 216, 216),
+//             borderRadius: BorderRadius.circular(30),
+//           ),
+//           child: Column(
+//             children: [
+//               _listTileComponent(context, () async {
+//                 Navigator.pushAndRemoveUntil(
+//                   context,
+//                   MaterialPageRoute(builder: (_) {
+//                     return RateAppScreen();
+//                   }),
+//                   (route) => false,
+//                 );
+//               }, Icons.rate_review, 'Rate App'),
+//               const Divider(),
+//               _listTileComponent(context, () async {
+//                 Navigator.pushAndRemoveUntil(
+//                   context,
+//                   MaterialPageRoute(builder: (_) {
+//                     return PrivacyPolicy();
+//                   }),
+//                   (route) => false,
+//                 );
+//               }, Icons.privacy_tip, 'Privacy Policy'),
+//               const Divider(),
+//               _listTileComponent(context, () async {
+//                 await FirebaseAuth.instance.signOut();
+//                 Navigator.pushAndRemoveUntil(
+//                   context,
+//                   MaterialPageRoute(builder: (_) {
+//                     return LogInScreen();
+//                   }),
+//                   (route) => false,
+//                 );
+//               }, Icons.logout, 'LogOut'),
+//               Divider(),
+//             ],
+//           ),
+//         ),
+//       ],
+//     ),
+//   );
+// }
+
+// Widget _listTileComponent(
+//   BuildContext context,
+//   void Function()? onTap,
+//   IconData leadingIcon,
+//   String title,
+// ) {
+//   return Column(
+//     children: [
+//       ListTile(
+//         onTap: onTap,
+//         leading: Icon(leadingIcon),
+//         title: Text(title),
+//         trailing: Icon(Icons.forward_outlined),
+//       )
+//     ],
+//   );
 // }

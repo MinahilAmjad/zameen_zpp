@@ -47,7 +47,7 @@ Widget drawerComponent(BuildContext context) {
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (_) {
-                      return RateApp();
+                      return RateAppScreen();
                     }),
                     (route) => false,
                   );

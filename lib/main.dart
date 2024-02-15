@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
         '/sell': (context) => const SellScreen(),
         '/user_profile': (context) => const UserProfileScreen(),
       },
-      home: const UserActivityCycleScreen(),
+      home:  UserActivityCycleScreen(),
     );
   }
 }
