@@ -66,46 +66,24 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       drawer: drawerComponent(context),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            SizedBox(height: 20),
-            CarouselSliderWidget(
-              // Carousel slider widget
-              imagePaths:
-                  carouselSliderModel.map((value) => value.imageUrl).toList(),
-              names: carouselSliderModel.map((value) => value.title).toList(),
-            ),
-            SizedBox(height: 20),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  'SELECT THE CATEGORY',
-                  style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-                ),
-                Divider(),
-                Card(
-                    color: Color.fromARGB(255, 240, 228, 228),
-                    child: CategoryItem(category: 'LAND')),
-                Card(
-                    color: Color.fromARGB(255, 240, 228, 228),
-                    child: CategoryItem(category: 'HOUSE')),
-                Card(
-                    color: Color.fromARGB(255, 240, 228, 228),
-                    child: CategoryItem(category: 'SHOPS')),
-                Card(
-                    color: Color.fromARGB(255, 240, 228, 228),
-                    child: CategoryItem(category: 'FACTORIES')),
-                Card(
-                    color: Color.fromARGB(255, 240, 228, 228),
-                    child: CategoryItem(category: 'BUILDINGS')),
-                Card(
-                    color: Color.fromARGB(255, 240, 228, 228),
-                    child: CategoryItem(category: 'HOTELS')),
-              ],
-            ),
-          ],
+      body: Container(
+        width: size.width,
+        height: size.height,
+        decoration: BoxDecoration(
+          color: Color.fromARGB(255, 243, 239, 239),
+          borderRadius: BorderRadius.circular(40),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              CarouselSliderWidget(
+                imagePaths:
+                    carouselSliderModel.map((value) => value.imageUrl).toList(),
+                names: carouselSliderModel.map((value) => value.title).toList(),
+              ),
+              _displayAssetsInCategories(),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -142,19 +120,60 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-}
 
-class CategoryItem extends StatelessWidget {
-  final String category;
+  Widget _displayAssetsInCategories() {
+    return StreamBuilder(
+      stream: FirebaseFirestore.instance.collection('all_products').snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data == null) {
+          return const Center(child: Text('No assets found.'));
+        } else {
+          var assets = snapshot.data!.docs;
+          var landAssets =
+              assets.where((asset) => asset['productType'] == 'LAND').toList();
+          Divider();
+          var houseAssets =
+              assets.where((asset) => asset['productType'] == 'HOUSE').toList();
+          Divider();
+          var shopAssets =
+              assets.where((asset) => asset['productType'] == 'SHOPS').toList();
+          var factoriesAssets = assets
+              .where((asset) => asset['productType'] == 'FACTORIES')
+              .toList();
+          var buildingsAssets = assets
+              .where((asset) => asset['productType'] == 'BUILDINGS')
+              .toList();
+          var hotelsAssets = assets
+              .where((asset) => asset['productType'] == 'HOTELS')
+              .toList();
 
-  const CategoryItem({Key? key, required this.category}) : super(key: key);
+          return Column(
+            children: [
+              _displayCategoryAssets("LANDS", landAssets),
+              _displayCategoryAssets("HOUSES", houseAssets),
+              _displaySeeAllButton(assets, shopAssets, factoriesAssets,
+                  buildingsAssets, hotelsAssets),
+            ],
+          );
+        }
+      },
+    );
+  }
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: ListTile(
-        title: Text(category),
-        onTap: () {
+  Widget _displaySeeAllButton(
+      List assets,
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> shopAssets,
+      factoriesAssets,
+      buildingsAssets,
+      hotelsAssets) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: TextButton(
+        onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -166,24 +185,609 @@ class CategoryItem extends StatelessWidget {
       ),
     );
   }
+
+  Widget _displayCategoryAssets(String categoryName, List assets) {
+    return Column(
+      children: [
+        ListTile(
+          title: Text(
+            categoryName,
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          itemCount: assets.length,
+          itemBuilder: (context, index) {
+            var asset = assets[index];
+            var productType = asset['productType'] ?? 'Unknown';
+
+            return Container(
+              height: 150,
+              width: double.infinity,
+              color: Color.fromARGB(255, 240, 228, 228),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: ListTile(
+                      title: Text(asset['productName'] ?? ''),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(asset['description'] ?? ''),
+                          Text(
+                            'Price: ${asset['price'] ?? 'N/A'}',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      trailing: Text('Type: $productType'),
+                    ),
+                  ),
+                  Spacer(),
+                  MaterialButton(
+                    color: Color(0xFFC8291D),
+                    minWidth: 50,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProductDetailsScreen(
+                            product: SellerProfileModel(
+                              name: asset['name'] ?? '',
+                              productName: asset['productName'] ?? '',
+                              description: asset['description'] ?? '',
+                              price: asset['price'] ?? 0.0,
+                              phoneNumber: asset['phoneNumber'] ?? 0,
+                              imageUrls:
+                                  asset['imageUrls']?.cast<String>() ?? [],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      "See Details",
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+        SizedBox(height: 10),
+      ],
+    );
+  }
 }
 
-class AppBarClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-    path.lineTo(0, size.height); // Start from bottom-left
-    path.quadraticBezierTo(size.width / 2, size.height * 0.7, size.width,
-        size.height); // Curve to bottom-right
-    path.lineTo(size.width, 0); // Line to top-right
-    path.quadraticBezierTo(
-        size.width / 2, size.height * 0, 0, 0); // Curve to top-left
-    path.close(); // Close the path
-    return path;
-  }
-
-  @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) {
-    return false;
-  }
+Widget drawerComponent(BuildContext context) {
+  Size size = MediaQuery.of(context).size;
+  return Drawer(
+    backgroundColor: const Color(0xFFC8291D),
+    child: ListView(
+      padding: EdgeInsets.zero,
+      children: <Widget>[
+        const SizedBox(
+          height: 200,
+          child: Center(
+            child: Text(
+              'Seller Screen ',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+        Container(
+          width: size.width,
+          height: size.height,
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(255, 221, 216, 216),
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Column(
+            children: [
+              _listTileComponent(context, () async {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) {
+                    return RateApp();
+                  }),
+                  (route) => false,
+                );
+              }, Icons.rate_review, 'Rate App'),
+              const Divider(),
+              _listTileComponent(context, () async {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) {
+                    return PrivacyPolicy();
+                  }),
+                  (route) => false,
+                );
+              }, Icons.privacy_tip, 'Privacy Policy'),
+              const Divider(),
+              _listTileComponent(context, () async {
+                await FirebaseAuth.instance.signOut();
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) {
+                    return LogInScreen();
+                  }),
+                  (route) => false,
+                );
+              }, Icons.logout, 'LogOut'),
+              Divider(),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
 }
+
+Widget _listTileComponent(
+  BuildContext context,
+  void Function()? onTap,
+  IconData leadingIcon,
+  String title,
+) {
+  return Column(
+    children: [
+      ListTile(
+        onTap: onTap,
+        leading: Icon(leadingIcon),
+        title: Text(title),
+        trailing: Icon(Icons.forward_outlined),
+      )
+    ],
+  );
+}
+
+
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:flutter/material.dart';
+// import 'package:zameen_zpp/components/drawer_components.dart';
+// import 'package:zameen_zpp/models/carousel_slider_model/carousel_slider_model.dart';
+// import 'package:zameen_zpp/models/seller_model/seller_profile_model.dart';
+// import 'package:zameen_zpp/models/ui_models/carousel_slider_model.dart';
+// import 'package:zameen_zpp/privacy_policy/privacy_policy.dart';
+// import 'package:zameen_zpp/rate_app/rate_app.dart';
+// import 'package:zameen_zpp/screen/see_all_assets.dart';
+// import 'package:zameen_zpp/sell_buy/product_detail_screen.dart';
+
+// class HomeScreen extends StatefulWidget {
+//   const HomeScreen({Key? key}) : super(key: key);
+
+//   @override
+//   State<HomeScreen> createState() => _HomeScreenState();
+// }
+
+// class _HomeScreenState extends State<HomeScreen> {
+//   String? searchQuery = '';
+//   int? myIndex = 0;
+
+//   @override
+//   Widget build(BuildContext context) {
+//     Size size = MediaQuery.of(context).size;
+//     return Scaffold(
+//       backgroundColor: Color(0xFFC8291D),
+//       appBar: AppBar(
+//         backgroundColor: Color(0xFFC8291D),
+//         title: const Text('zameen'),
+//         // actions: [
+//         //   IconButton(
+//         //     onPressed: () {},
+//         //     icon: const Center(child: Icon(FontAwesomeIcons.search, size: 20)),
+//         //   ),
+//         // ],
+//       ),
+//       drawer: Drawer(
+//         backgroundColor: const Color(0xFFC8291D),
+//         child: ListView(
+//           padding: EdgeInsets.zero,
+//           children: <Widget>[
+//             const SizedBox(
+//               height: 200,
+//               child: Center(
+//                 child: Text(
+//                   'Seller Screen ',
+//                   style: TextStyle(
+//                     color: Colors.white,
+//                     fontSize: 24,
+//                     fontWeight: FontWeight.bold,
+//                   ),
+//                 ),
+//               ),
+//             ),
+//             Container(
+//               width: size.width,
+//               height: size.height,
+//               decoration: BoxDecoration(
+//                 color: const Color.fromARGB(255, 221, 216, 216),
+//                 borderRadius: BorderRadius.circular(30),
+//               ),
+//             //   child: Column(
+//             //     children: [
+//             //       Container(
+//             // width: size.width,
+//             // height: size.height,
+//             // decoration: BoxDecoration(
+//             //   color: const Color.fromARGB(255, 221, 216, 216),
+//             //   borderRadius: BorderRadius.circular(30),
+//             // ),
+//             child: Column(
+//               children: [
+//                 _listTileComponent(context, () async {
+//                   Navigator.pushAndRemoveUntil(
+//                     context,
+//                     MaterialPageRoute(builder: (_) {
+//                       return RateApp();
+//                     }),
+//                     (route) => false,
+//                   );
+//                 }, Icons.rate_review, 'Rate App'),
+//                 const Divider(),
+//                 _listTileComponent(context, () async {
+//                   Navigator.pushAndRemoveUntil(
+//                     context,
+//                     MaterialPageRoute(builder: (_) {
+//                       return PrivacyPolicy();
+//                     }),
+//                     (route) => false,
+//                   );
+//                 }, Icons.privacy_tip, 'Privacy Policy'),
+//                 const Divider(),
+//                 _listTileComponent(context, () async {
+//                   await FirebaseAuth.instance.signOut();
+//                   Navigator.pushAndRemoveUntil(
+//                     context,
+//                     MaterialPageRoute(builder: (_) {
+//                       return LogInScreen();
+//                     }),
+//                     (route) => false,
+//                   );
+//                 }, Icons.logout, 'LogOut'),
+//                 Divider(),
+//               ],
+//             ),
+//           ),
+//      ], ),
+//       body:  Container(
+//         width: size.width,
+//         height: size.height,
+//         decoration: BoxDecoration(
+//           color: Color.fromARGB(255, 247, 247, 247),
+//           borderRadius: BorderRadius.circular(40),
+//         ),
+//         child: SingleChildScrollView(
+//           child: Column(
+//             children: [
+//               // StreamBuilder(
+//               //   stream: FirebaseAuth.instance.authStateChanges(),
+//               //   builder: (context, snapshot) {
+//               //     if (snapshot.connectionState == ConnectionState.waiting) {
+//               //       return const Center(child: CircularProgressIndicator());
+//               //     } else if (snapshot.hasError) {
+//               //       debugPrint("Auth State Error: ${snapshot.error}");
+//               //       return Center(child: Text('Error: ${snapshot.error}'));
+//               //     } else if (snapshot.hasData && snapshot.data != null) {
+//               //       User? user = FirebaseAuth.instance.currentUser;
+//               //       String? uid = user?.uid;
+
+//               //       if (uid != null && uid.isNotEmpty) {
+//               //         return StreamBuilder(
+//               //           stream: FirebaseFirestore.instance
+//               //               .collection('users')
+//               //               .doc(uid)
+//               //               .snapshots(),
+//               //           builder: (context, snapshot) {
+//               //             if (snapshot.connectionState ==
+//               //                 ConnectionState.waiting) {
+//               //               return const Center(
+//               //                   child: CircularProgressIndicator());
+//               //             } else if (snapshot.hasError) {
+//               //               debugPrint("User Data Error: ${snapshot.error}");
+//               //               return Center(
+//               //                   child: Text('Error: ${snapshot.error}'));
+//               //             } else if (snapshot.hasData && snapshot.data != null) {
+//               //               var user = snapshot.data;
+//               //               final photo = user!['photoUrl']?.toString() ??
+//               //                   AppUtils.splashScreenBgImg;
+//               //               final displayName =
+//               //                   user['displayName']?.toString() ?? '';
+
+//               //               return ListTile(
+//               //                 leading: CircleAvatar(
+//               //                   backgroundImage:
+//               //                       CachedNetworkImageProvider(photo),
+//               //                 ),
+//               //                 title: SelectableText("Welcome $displayName"),
+//               //               );
+//               //             } else {
+//               //               return const Center(
+//               //                   child: Text('No user data found.'));
+//               //             }
+//               //           },
+//               //         );
+//               //       } else {
+//               //         return const Center(child: Text('User UID is empty.'));
+//               //       }
+//               //     } else {
+//               //       return const Center(child: Text('User not logged in.'));
+//               //     }
+//               //   },
+//               // ),
+
+//               CarouselSliderWidget(
+//                 imagePaths:
+//                     carouselSliderModel.map((value) => value.imageUrl).toList(),
+//                 names: carouselSliderModel.map((value) => value.title).toList(),
+//               ),
+
+//               ///
+//               _displayAssetsInCategories(),
+
+//               // Container(
+//               //   height: 50,
+//               //   width: 300,
+//               //   decoration: BoxDecoration(
+//               //     color: Colors.blue,
+//               //     borderRadius: BorderRadius.circular(25),
+//               //   ),
+//               //   child: MaterialButton(
+//               //     onPressed: () {
+//               //       Navigator.push(
+//               //         context,
+//               //         MaterialPageRoute(builder: (context) => SellScreen()),
+//               //       );
+//               //     },
+//               //     child: Text('Sell',
+//               //         style:
+//               //             TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+//               //   ),
+//               // ),
+//               // SizedBox(height: 30),
+//               // Container(
+//               //   height: 50,
+//               //   width: 300,
+//               //   decoration: BoxDecoration(
+//               //     color: Colors.red,
+//               //     borderRadius: BorderRadius.circular(25),
+//               //   ),
+//               //   child: MaterialButton(
+//               //     onPressed: () {
+//               //       Navigator.push(
+//               //         context,
+//               //         MaterialPageRoute(builder: (context) => BuyScreen()),
+//               //       );
+//               //     },
+//               //     child: Text('Buy',
+//               //         style:
+//               //             TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+//               //   ),
+//               // ),
+//             ],
+//           ),
+//         ),
+//       ),
+//       drawer: drawerComponent(context),
+//       bottomNavigationBar: BottomNavigationBar(
+//         type: BottomNavigationBarType.fixed,
+//         selectedItemColor: Colors.black,
+//         onTap: (index) {
+//           setState(() {
+//             myIndex = index;
+//           });
+
+//           switch (index) {
+//             case 0:
+//               Navigator.pushReplacementNamed(context, '/home');
+//               break;
+//             case 1:
+//               Navigator.pushReplacementNamed(context, '/search');
+//               break;
+//             case 2:
+//               Navigator.pushReplacementNamed(context, '/sell');
+//               break;
+//             case 3:
+//               Navigator.pushReplacementNamed(context, '/user_profile');
+//               break;
+//           }
+//         },
+//         currentIndex: myIndex!,
+//         items: [
+//           const BottomNavigationBarItem(
+//             icon: Icon(Icons.home),
+//             label: 'Home',
+//           ),
+//           const BottomNavigationBarItem(
+//             icon: Icon(Icons.search),
+//             label: 'Search',
+//           ),
+//           const BottomNavigationBarItem(
+//             icon: Icon(Icons.sell),
+//             label: 'Sell Assets',
+//           ),
+//           const BottomNavigationBarItem(
+//             icon: Icon(Icons.person),
+//             label: 'User',
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+
+//   Widget _displayAssetsInCategories() {
+//     return StreamBuilder(
+//       stream: FirebaseFirestore.instance.collection('all_products').snapshots(),
+//       builder: (context, snapshot) {
+//         if (snapshot.connectionState == ConnectionState.waiting) {
+//           return const Center(child: CircularProgressIndicator());
+//         } else if (snapshot.hasError) {
+//           return Center(child: Text('Error: ${snapshot.error}'));
+//         } else if (!snapshot.hasData || snapshot.data == null) {
+//           return const Center(child: Text('No assets found.'));
+//         } else {
+//           var assets = snapshot.data!.docs;
+//           // Filter assets based on categories or any other criteria
+//           var landAssets =
+//               assets.where((asset) => asset['productType'] == 'LAND').toList();
+//           Divider();
+//           var houseAssets =
+//               assets.where((asset) => asset['productType'] == 'HOUSE').toList();
+//           Divider();
+//           var shopAssets =
+//               assets.where((asset) => asset['productType'] == 'SHOPS').toList();
+//           var factoriesAssets = assets
+//               .where((asset) => asset['productType'] == 'FACTORIES')
+//               .toList();
+//           var buildingsAssets = assets
+//               .where((asset) => asset['productType'] == 'BUILDINGS')
+//               .toList();
+//           var hotelsAssets = assets
+//               .where((asset) => asset['productType'] == 'HOTELS')
+//               .toList();
+
+//           return Column(
+//             children: [
+//               _displayCategoryAssets("LANDS", landAssets),
+
+//               _displayCategoryAssets("HOUSES", houseAssets),
+
+//               // _displayCategoryAssets("Shops", shopAssets),
+//               _displaySeeAllButton(assets, shopAssets, factoriesAssets,
+//                   buildingsAssets, hotelsAssets),
+//             ],
+//           );
+//         }
+//       },
+//     );
+//   }
+
+//   Widget _displaySeeAllButton(
+//       List assets,
+//       List<QueryDocumentSnapshot<Map<String, dynamic>>> shopAssets,
+//       factoriesAssets,
+//       buildingsAssets,
+//       hotelsAssets) {
+//     return Padding(
+//       padding: const EdgeInsets.all(8.0),
+//       child: TextButton(
+//         onPressed: () {
+//           Navigator.push(
+//             context,
+//             MaterialPageRoute(
+//               builder: (context) =>
+//                   SeeAllAssetsScreen(assets: assets, shopAssets: shopAssets),
+//             ),
+//           );
+//         },
+//         child: Text(
+//           "See All",
+//           style: TextStyle(
+//             color: Color.fromRGBO(7, 7, 7, 1),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+
+//   Widget _displayCategoryAssets(String categoryName, List assets) {
+//     return Column(
+//       children: [
+//         ListTile(
+//           title: Text(
+//             categoryName,
+//             style: TextStyle(fontWeight: FontWeight.bold),
+//           ),
+//         ),
+//         ListView.builder(
+//           shrinkWrap: true,
+//           physics: NeverScrollableScrollPhysics(),
+//           itemCount: assets.length,
+//           itemBuilder: (context, index) {
+//             var asset = assets[index];
+
+//             var productType = asset['productType'] ?? 'Unknown';
+
+//             return Container(
+//               height: 150,
+//               width: double.infinity,
+//               color: Color.fromARGB(255, 239, 238, 238),
+//               child: Column(
+//                 children: [
+//                   Expanded(
+//                     child: ListTile(
+//                       title: Text(asset['productName'] ?? ''),
+//                       subtitle: Column(
+//                         crossAxisAlignment: CrossAxisAlignment.start,
+//                         children: [
+//                           Text(asset['description'] ?? ''),
+//                           Text(
+//                             'Price: ${asset['price'] ?? 'N/A'}',
+//                             style: TextStyle(fontWeight: FontWeight.bold),
+//                           ),
+//                         ],
+//                       ),
+//                       trailing: Text('Type: $productType'),
+//                     ),
+//                   ),
+//                   Spacer(),
+//                   MaterialButton(
+//                     color: Color(0xFFC8291D),
+//                     minWidth: 50,
+//                     onPressed: () {
+//                       Navigator.push(
+//                         context,
+//                         MaterialPageRoute(
+//                           builder: (context) => ProductDetailsScreen(
+//                             product: SellerProfileModel(
+//                               name: asset['name'] ?? '',
+//                               productName: asset['productName'] ?? '',
+//                               description: asset['description'] ?? '',
+//                               price: asset['price'] ?? 0.0,
+//                               phoneNumber: asset['phoneNumber'] ?? 0,
+//                               imageUrls:
+//                                   asset['imageUrls']?.cast<String>() ?? [],
+//                             ),
+//                           ),
+//                         ),
+//                       );
+//                     },
+//                     child: Text(
+//                       "See Details",
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             );
+//           },
+//         ),
+//         SizedBox(height: 10),
+//       ],
+//     );
+//   }
+//   Widget _listTileComponent(
+//   BuildContext context,
+//   void Function()? onTap,
+//   IconData leadingIcon,
+//   String title,
+// ) {
+//   return Column(
+//     children: [
+//       ListTile(
+//         onTap: onTap,
+//         leading: Icon(leadingIcon),
+//         title: Text(title),
+//         trailing: Icon(Icons.forward_outlined),
+//       )
+//     ],
+//   );
+// }
+// }
