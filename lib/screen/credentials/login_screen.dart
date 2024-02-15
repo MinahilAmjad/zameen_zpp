@@ -157,7 +157,7 @@ class _LogInScreenState extends State<LogInScreen> {
                             title: "Don't have an Account?",
                             buttonTitle: 'CREATE ACCOUNT',
                             onPressed: () {
-                              Navigator.pushReplacement(
+                              Navigator.push(
                                 context,
                                 MaterialPageRoute(builder: (_) {
                                   return const SignUpScreen();

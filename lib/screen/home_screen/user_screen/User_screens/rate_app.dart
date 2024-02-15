@@ -10,11 +10,23 @@ class RateAppScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Rate App',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      // backgroundColor: Color(0xFFC8291D),
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(100.0), // Adjust the height as needed
+        child: ClipPath(
+          clipper: AppBarClipper(),
+          child: Container(
+            color: Color(0xFFC8291D),
+            child: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              title: Text('Rate'),
+              centerTitle: true,
+            ),
+          ),
         ),
       ),
       body: Padding(
@@ -68,6 +80,26 @@ class RateAppScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class AppBarClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    path.lineTo(0, size.height); // Start from bottom-left
+    path.quadraticBezierTo(size.width / 2, size.height * 0.7, size.width,
+        size.height); // Curve to bottom-right
+    path.lineTo(size.width, 0); // Line to top-right
+    path.quadraticBezierTo(
+        size.width / 2, size.height * 0, 0, 0); // Curve to top-left
+    path.close(); // Close the path
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) {
+    return false;
   }
 }
 

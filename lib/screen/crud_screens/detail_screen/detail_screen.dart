@@ -36,7 +36,7 @@ class _assetsDetailScreenState extends State<AssetsDetailScreen> {
             ),
             ListTile(
               leading: CircleAvatar(
-                child: Text(widget.product?.productName ?? 'N/A'),
+                child: Text(widget.product?.productType ?? 'N/A'),
               ),
               subtitle: Text(widget.product?.description ?? 'N/A'),
               trailing: Text(widget.product?.price.toString() ?? 'N/A'),

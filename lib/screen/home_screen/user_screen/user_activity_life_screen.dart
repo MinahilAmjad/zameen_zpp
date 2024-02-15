@@ -38,7 +38,7 @@ class UserActivityCycleScreen extends StatelessWidget {
         User? user = FirebaseAuth.instance.currentUser;
         if (user != null) {
           //if user is logged in then will returned to homescreen
-          return const HomeScreen();
+          return HomeScreen();
         } else {
           //if user is logged out then will returned to loginscreen
           return const LogInScreen();
